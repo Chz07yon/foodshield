@@ -1,0 +1,805 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="FoodShield | AI-Powered Food Quality Verification & Delivery Fraud Prevention. Protecting restaurants and customers through secure video watermarks and CLIP deep learning forensic analysis." />
+    <meta name="keywords" content="food safety, fraud detection, delivery disputes, machine learning forensics, secure packaging, blockchain audit log" />
+    <title>FoodShield | AI-Powered Food Quality & Fraud Verification</title>
+    
+    <!-- Custom Style Sheet -->
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <!-- Global Header -->
+    <header>
+      <div class="app-container header-content">
+        <div class="logo-section">
+          <div class="logo-icon">F</div>
+          <span class="logo-text">FoodShield</span>
+        </div>
+        
+        <div class="controls-section">
+          <!-- Language Select -->
+          <div style="display:flex;align-items:center;gap:0.25rem;">
+            <i data-lucide="globe" style="width:1rem;height:1rem;color:hsl(var(--text-dim));"></i>
+            <select id="lang-select" class="dropdown-select">
+              <option value="en">English (EN)</option>
+              <option value="hi">हिन्दी (HI)</option>
+              <option value="es">Español (ES)</option>
+              <option value="ar">العربية (AR)</option>
+              <option value="ja">日本語 (JA)</option>
+              <option value="fr">Français (FR)</option>
+            </select>
+          </div>
+          
+          <!-- Theme Switcher -->
+          <button id="theme-toggle" class="btn-icon" title="Toggle Appearance">
+            <i data-lucide="moon" style="width:1rem;height:1rem;"></i>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Global App Wrapper -->
+    <div class="app-container">
+      
+      <!-- Role Navigation Tab Banner -->
+      <div class="role-switcher-banner">
+        <button class="role-tab active" data-role="restaurant" onclick="switchRole('restaurant')">
+          <i data-lucide="store" style="width:0.85rem;height:0.85rem;"></i>
+          <span>Restaurant Portal</span>
+        </button>
+        <button class="role-tab" data-role="customer" onclick="switchRole('customer')">
+          <i data-lucide="users" style="width:0.85rem;height:0.85rem;"></i>
+          <span>Customer Portal</span>
+        </button>
+        <button class="role-tab" data-role="admin" onclick="switchRole('admin')">
+          <i data-lucide="shield-alert" style="width:0.85rem;height:0.85rem;"></i>
+          <span>Security Admin Portal</span>
+        </button>
+      </div>
+
+      <!-- Live Warn Banner -->
+      <div id="account-warning-banner" class="warning-banner">
+        <div style="display:flex;align-items:center;gap:0.5rem;">
+          <i data-lucide="alert-triangle" style="width:1rem;height:1rem;flex-shrink:0;"></i>
+          <span class="banner-msg">Warning banner messages here</span>
+        </div>
+        <button id="close-warning-btn" style="background:transparent;border:none;color:inherit;cursor:pointer;font-weight:700;">✕</button>
+      </div>
+
+      <!-- MAIN LAYOUT VIEWS -->
+      <main>
+        
+        <!-- 1. RESTAURANT PORTAL VIEW -->
+        <section id="restaurant-portal" class="portal-view active">
+          <div style="text-align:left;margin-bottom:1.5rem;">
+            <h2 data-translate="restaurantTitle">Kitchen Packaging Surveillance</h2>
+            <p data-translate="restaurantSubtitle">AI-Powered Visual Freshness & Tape Integrity Verification</p>
+          </div>
+
+          <!-- KPIs -->
+          <div class="kpi-container">
+            <div class="kpi-card accent-border-blue">
+              <span class="kpi-title" data-translate="totalPacked">Surveillance Logs</span>
+              <div id="rest-kpi-total" class="kpi-value">0</div>
+            </div>
+            <div class="kpi-card accent-border-blue">
+              <span class="kpi-title" data-translate="issuesFlagged">AI Flags Intercepted</span>
+              <div id="rest-kpi-issues" class="kpi-value" style="color:hsl(var(--alert-red))">0</div>
+            </div>
+            <div class="kpi-card accent-border-blue">
+              <span class="kpi-title" data-translate="averageQuality">Average Freshness Score</span>
+              <div id="rest-kpi-quality" class="kpi-value" style="color:hsl(var(--success-green))">0%</div>
+            </div>
+          </div>
+
+          <!-- Split surveillance / list layout -->
+          <div class="split-layout-8-4">
+            
+            <!-- Left panel: recording console -->
+            <div class="glass-card">
+              <div style="display:flex;justify-content:between;align-items:center;margin-bottom:1.25rem;flex-wrap:wrap;gap:1rem;">
+                <h4 style="color:white;display:flex;align-items:center;gap:0.5rem;">
+                  <i data-lucide="video" style="color:hsl(var(--accent-blue));"></i>
+                  <span>Live Packaging Feed</span>
+                </h4>
+                
+                <div style="display:flex;gap:0.5rem;align-items:center;">
+                  <select id="rest-staff-select" class="dropdown-select" style="height:2.25rem;">
+                    <option value="STF-02">Chef - Ramesh Kumar</option>
+                    <option value="STF-09">Chef - Priya Sharma</option>
+                    <option value="STF-18">Chef - Mei Ling</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Viewport canvas -->
+              <div class="camera-viewport">
+                <canvas id="rest-canvas" width="640" height="360" class="camera-canvas"></canvas>
+                
+                <!-- REC Badge Overlay -->
+                <div id="rest-rec-overlay" class="recording-overlay" style="display:none;">
+                  <div class="dot-pulse"></div>
+                  <span id="rest-timer-sec">0s</span>
+                </div>
+
+                <!-- AI Anomaly Alert Box Overlay -->
+                <div id="rest-ai-alert" class="ai-alert-box" style="display:none;">
+                  <strong>AI Warning:</strong> Sealing lid integrity anomaly flagged (99% confidence).
+                </div>
+              </div>
+
+              <!-- Form selectors & button commands -->
+              <div style="margin-top:1.25rem;display:grid;grid-template-columns:1fr;gap:1.25rem;text-align:left;">
+                <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:1rem;">
+                  <div class="form-group" style="margin-bottom:0;">
+                    <label class="form-label" data-translate="selectOrder">Identify Order</label>
+                    <select id="rest-order-select" class="select-control" onchange="updateRestOrderDisplay()">
+                      <option value="">-- Choose Order ID --</option>
+                    </select>
+                  </div>
+                  <div id="rest-order-items-box" class="logs-list" style="height:2.75rem;padding:0.35rem 0.75rem;display:none;">
+                    <!-- items list output -->
+                  </div>
+                </div>
+
+                <div style="display:flex;gap:0.75rem;flex-wrap:wrap;margin-top:0.25rem;">
+                  <button id="rest-recording-btn" class="btn btn-primary" style="width:auto;" onclick="startRestaurantRecording()">
+                    <i data-lucide="play"></i>
+                    <span>Start Capture</span>
+                  </button>
+                  <button id="rest-stop-btn" class="btn btn-red" style="width:auto;display:none;" onclick="stopRestaurantRecording()">
+                    <i data-lucide="pause"></i>
+                    <span>Stop Recording</span>
+                  </button>
+                  <button id="rest-discard-btn" class="btn btn-secondary" style="width:auto;display:none;" onclick="discardRecording()">
+                    <span>Discard</span>
+                  </button>
+                  <button id="rest-seal-btn" class="btn btn-green" style="width:auto;display:none;" onclick="approvePackagingAndSeal()">
+                    <i data-lucide="shield-check"></i>
+                    <span data-translate="confirmSeal">Verify & Seal Package</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Recording system logs console box -->
+              <div style="margin-top:1.25rem;text-align:left;">
+                <div style="font-size:0.7rem;font-weight:700;color:hsl(var(--text-dim));text-transform:uppercase;margin-bottom:0.35rem;">Real-time diagnostics output</div>
+                <div id="rest-logs-box" class="logs-list">
+                  <div class="log-entry">[System] Camera feed offline.</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right panel: recent seals -->
+            <div class="glass-card">
+              <h4 style="color:white;margin-bottom:1rem;text-align:left;" data-translate="recentVideos">Recent Kitchen Records</h4>
+              
+              <!-- Video Match success card block -->
+              <div id="rest-seal-success-block" class="glass-card" style="display:none;background:hsla(var(--success-green) / 0.05);border-color:hsla(var(--success-green) / 0.3);padding:1rem;margin-bottom:1rem;text-align:left;">
+                <div style="font-size:0.7rem;font-weight:700;color:hsl(var(--success-green));text-transform:uppercase;">Package Sealed successfully</div>
+                <p style="font-size:0.75rem;margin-top:0.25rem;">SURVEILLANCE HASH PUBLISHED ON SYSTEM BLOCKCHAIN LEDGER:</p>
+                <div id="rest-seal-code" style="font-family:var(--font-mono);font-size:0.85rem;font-weight:700;color:white;margin:0.5rem 0;word-break:break-all;">VER-REST-...</div>
+                <button class="btn btn-secondary" style="height:2rem;font-size:0.75rem;padding:0 0.75rem;" onclick="copyRestSealCode()">
+                  <i data-lucide="copy" style="width:0.8rem;height:0.8rem;"></i>
+                  <span>Copy Token</span>
+                </button>
+              </div>
+
+              <div style="font-size:0.75rem;color:hsl(var(--text-muted));line-height:1.5;text-align:left;">
+                Kitchen cameras record the order packaging conveyor process. The AI system runs edge detection, tape measurements, and freshness color analysis, logging files directly to our tamper-proof verification nodes.
+              </div>
+            </div>
+          </div>
+
+          <!-- Video logs records table -->
+          <div class="glass-card" style="margin-top:1.5rem;">
+            <h4 style="color:white;text-align:left;margin-bottom:0.75rem;">Active Surveillance Log Database</h4>
+            <div class="table-wrapper">
+              <table class="table-core">
+                <thead>
+                  <tr>
+                    <th>Order info</th>
+                    <th>Verification Code</th>
+                    <th>Status</th>
+                    <th>Timestamp</th>
+                    <th>Duration</th>
+                    <th style="text-align:right;">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="rest-logs-tbody">
+                  <!-- dynamically generated logs -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+
+        <!-- 2. CUSTOMER PORTAL VIEW -->
+        <section id="customer-portal" class="portal-view">
+          
+          <!-- CUSTOMER DASHBOARD PANEL -->
+          <div id="customer-dashboard-section">
+            <div style="display:flex;justify-content:between;align-items:center;margin-bottom:1.5rem;text-align:left;">
+              <div>
+                <h2 data-translate="customerTitle">Customer Refund Disputes</h2>
+                <p data-translate="customerSubtitle">Audit logs & photo forensics for quality refund claims</p>
+              </div>
+              <button class="btn btn-purple" style="width:auto;" onclick="openClaimWizard()">
+                <i data-lucide="plus"></i>
+                <span data-translate="newClaim">File Quality Dispute</span>
+              </button>
+            </div>
+
+            <!-- List active claims -->
+            <div style="text-align:left;">
+              <h4 style="color:white;margin-bottom:1rem;" data-translate="claimHistory">Your Active Claims</h4>
+              <div id="customer-claims-list">
+                <!-- dynamic lists -->
+              </div>
+            </div>
+          </div>
+
+          <!-- ACCOUNT SUSPENDED BLOCK -->
+          <div id="customer-suspended-section" style="display:none;max-width:600px;margin:2rem auto;text-align:left;">
+            <div class="glass-card accent-border-red" style="padding:2rem;">
+              <div style="width:3.5rem;height:3.5rem;border-radius:1rem;background:linear-gradient(135deg, hsl(var(--alert-red)), #fca5a5);display:flex;align-items:center;justify-content:center;font-size:1.5rem;color:white;margin-bottom:1rem;">
+                <i data-lucide="shield-alert"></i>
+              </div>
+              <h2 data-translate="accountSuspended">Claim Privileges Locked</h2>
+              <p style="font-size:0.85rem;margin-top:0.5rem;line-height:1.6;">
+                Our forensic neural network scans flagged multiple image uploads originating from synthetic generative sources (Photoshop extensions / Diffusion software). Under our terms, claim verification privileges have been frozen pending manual audit deactivation.
+              </p>
+              
+              <div id="cust-appeal-form" style="margin-top:1.5rem;">
+                <form onsubmit="submitCustomerBanAppeal(event)">
+                  <div class="form-group">
+                    <label class="form-label" data-translate="appealReason">Dispute Deactivation Appeal</label>
+                    <textarea id="cust-appeal-text" class="form-control" placeholder="Provide context regarding the flagged uploads..." required></textarea>
+                  </div>
+                  <button type="submit" class="btn btn-red">Submit Appeal Request</button>
+                </form>
+              </div>
+              
+              <div id="cust-appeal-success" class="glass-card" style="display:none;background:hsla(var(--success-green) / 0.05);border-color:hsla(var(--success-green) / 0.3);padding:1rem;margin-top:1.5rem;">
+                <div style="font-weight:700;color:hsl(var(--success-green));font-size:0.8rem;">Appeal Submitted successfully</div>
+                <div style="font-size:0.75rem;color:hsl(var(--text-muted));margin-top:0.25rem;">Security agents are reviewing your logs. You will be notified.</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- CLAIMS SUBMISSION STEPS WIZARD -->
+          <div id="customer-wizard-section" class="glass-card" style="display:none;text-align:left;">
+            <div style="display:flex;justify-content:between;align-items:center;margin-bottom:1.5rem;">
+              <h4 style="color:white;">Quality Dispute File Wizard</h4>
+              <button class="btn-mini btn-secondary" onclick="closeClaimWizard()">✕ Exit</button>
+            </div>
+
+            <!-- Stepper header -->
+            <div class="wizard-stepper">
+              <div class="stepper-dot active" data-step="1">1</div>
+              <div class="stepper-dot" data-step="2">2</div>
+              <div class="stepper-dot" data-step="3">3</div>
+            </div>
+
+            <!-- STEP 1: Select Order -->
+            <div class="wizard-step-view active" data-step="1">
+              <div class="form-group">
+                <label class="form-label" data-translate="selectOrder">Identify Order</label>
+                <select id="cust-order-select" class="select-control">
+                  <option value="">-- Choose Order --</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">
+                  Verification Code
+                  <span style="color:hsl(var(--text-dim));font-size:0.65rem;" data-translate="optionalCode">(Optional)</span>
+                </label>
+                <input id="cust-vercode-input" type="text" class="form-control" placeholder="VER-REST-XXX-..." oninput="checkCustomerVerificationCode()" />
+                <p class="form-label" style="font-size:0.65rem;margin-top:0.25rem;" data-translate="enterVerificationCodeHint">Verification Code from Package</p>
+              </div>
+
+              <!-- Match Video Verification Alert -->
+              <div id="cust-video-matched-alert" class="warning-banner" style="display:none;margin-top:1rem;">
+                <div style="display:flex;align-items:center;gap:0.5rem;">
+                  <i data-lucide="check-circle" style="width:1rem;height:1rem;"></i>
+                  <span class="banner-msg">matched</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- STEP 2: Defect Details -->
+            <div class="wizard-step-view" data-step="2">
+              <div class="form-group">
+                <label class="form-label" data-translate="selectCategory">Select Defect Area</label>
+                <div class="category-selector-grid">
+                  <div class="category-option" onclick="selectCategoryOption(this, 'Foreign Particles (hair, insects, nails)')">
+                    <h5 style="color:white;font-size:0.8rem;margin-bottom:0.15rem;">Foreign Particles</h5>
+                    <p style="font-size:0.65rem;margin:0;">Hair, insects, nails, dust</p>
+                  </div>
+                  <div class="category-option" onclick="selectCategoryOption(this, 'Poor Packaging (damaged, leaked)')">
+                    <h5 style="color:white;font-size:0.8rem;margin-bottom:0.15rem;">Poor Packaging</h5>
+                    <p style="font-size:0.65rem;margin:0;">Damaged, leaked, crushed box</p>
+                  </div>
+                  <div class="category-option" onclick="selectCategoryOption(this, 'Under-cooked Food (raw, cold)')">
+                    <h5 style="color:white;font-size:0.8rem;margin-bottom:0.15rem;">Under-cooked Food</h5>
+                    <p style="font-size:0.65rem;margin:0;">Raw meat, cold center, soggy</p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" data-translate="describeIssue">Quality Defect Narrative</label>
+                <textarea id="cust-desc-input" class="form-control" placeholder="Provide clear descriptions of what you found defective..."></textarea>
+                
+                <!-- Keyword suggestions deck -->
+                <div style="margin-top:0.5rem;">
+                  <span style="font-size:0.65rem;color:hsl(var(--text-dim));margin-right:0.5rem;">SUGGESTIONS:</span>
+                  <span id="cust-keyword-suggestions">
+                    <!-- filled dynamically -->
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- STEP 3: Photo evidence uploader -->
+            <div class="wizard-step-view" data-step="3">
+              <div style="display:flex;justify-content:between;align-items:center;margin-bottom:0.5rem;flex-wrap:wrap;gap:0.5rem;">
+                <label class="form-label" data-translate="uploadEvidence">Provide Image Evidence</label>
+                <button class="btn-mini btn-secondary" onclick="simulateGenuineAllEvidence()">Simulate Genuine for All</button>
+              </div>
+              <p style="font-size:0.75rem;color:hsl(var(--text-muted));line-height:1.4;">
+                Upload 4 mandatory photographic angles. Our CLIP network verifies EXIF coordinates, scans blur metrics, and intercepts AI generative synthetic alterations.
+              </p>
+
+              <!-- Photo Slots -->
+              <div id="photo-slots-element" class="photo-slots-grid">
+                <!-- slots filled dynamically in app.js -->
+              </div>
+            </div>
+
+            <!-- Wizard controls -->
+            <div style="margin-top:2rem;display:flex;justify-content:between;gap:1rem;">
+              <button id="cust-wizard-prev" class="btn btn-secondary" style="width:auto;" onclick="wizardGoPrev()">Back</button>
+              <div style="flex:1;"></div>
+              <button id="cust-wizard-next" class="btn btn-primary" style="width:auto;" onclick="wizardGoNext()">Continue</button>
+              <button id="cust-wizard-submit" class="btn btn-purple" style="width:auto;display:none;" onclick="submitCustomerClaim(event)">Submit Dispute</button>
+            </div>
+          </div>
+
+          <!-- DISPUTE LIFE CYCLE TRACKER & DETAIL PANEL -->
+          <div id="customer-tracker-section" class="glass-card" style="display:none;text-align:left;">
+            <div style="display:flex;justify-content:between;align-items:center;margin-bottom:1.5rem;flex-wrap:wrap;gap:1rem;">
+              <div>
+                <span id="cust-tracker-status" class="badge">Analyzing</span>
+                <h3 id="cust-tracker-id" style="color:white;margin-top:0.25rem;">#CLA-2281</h3>
+              </div>
+              <button class="btn btn-secondary" style="width:auto;" onclick="returnToCustomerClaims()">➔ Return to Claims</button>
+            </div>
+
+            <!-- Split layout Details vs Timeline -->
+            <div class="split-layout-8-4">
+              
+              <!-- Left panel: photos & report -->
+              <div style="display:grid;grid-template-columns:1fr;gap:1.5rem;">
+                
+                <!-- Timeline status -->
+                <div class="glass-card">
+                  <h4 style="color:white;margin-bottom:0.75rem;" data-translate="disputeTimeline">Dispute Lifecycle Tracker</h4>
+                  <div id="cust-tracker-timeline" class="timeline-vertical">
+                    <!-- timeline content generated dynamically -->
+                  </div>
+                </div>
+
+                <!-- Final Decision banner output -->
+                <div id="cust-tracker-decision" class="glass-card" style="display:none;background:hsla(var(--success-green) / 0.05);border-color:hsla(var(--success-green) / 0.3);padding:1rem;">
+                  <!-- resolution text output -->
+                </div>
+
+                <!-- Evidence review list -->
+                <div class="glass-card">
+                  <h4 style="color:white;margin-bottom:0.75rem;">Submitted Photographic Evidence</h4>
+                  <div id="cust-tracker-evidence-grid" class="photo-slots-grid" style="grid-template-columns:repeat(auto-fit, minmax(110px, 1fr));">
+                    <!-- photo entries dynamically filled -->
+                  </div>
+                </div>
+              </div>
+
+              <!-- Right panel: image diagnostics forensic scores -->
+              <div class="glass-card">
+                <h4 style="color:white;margin-bottom:1rem;" data-translate="forensicReport">Forensic Report Analysis</h4>
+                
+                <div style="display:flex;flex-direction:column;gap:0.75rem;font-size:0.8rem;text-align:left;">
+                  <div style="border-bottom:1px solid hsl(var(--border-color));padding-bottom:0.5rem;">
+                    <span style="color:hsl(var(--text-dim));display:block;font-size:0.7rem;text-transform:uppercase;">Overall Suspicion Risk</span>
+                    <span id="cust-report-score" class="badge">12%</span>
+                  </div>
+                  
+                  <div style="border-bottom:1px solid hsl(var(--border-color));padding-bottom:0.5rem;">
+                    <span style="color:hsl(var(--text-dim));display:block;font-size:0.7rem;text-transform:uppercase;">CLIP Neural Authenticity</span>
+                    <span id="cust-report-auth" style="font-weight:700;color:white;">Verifying...</span>
+                  </div>
+
+                  <div style="border-bottom:1px solid hsl(var(--border-color));padding-bottom:0.5rem;">
+                    <span style="color:hsl(var(--text-dim));display:block;font-size:0.7rem;text-transform:uppercase;">Metadata & EXIF Tags</span>
+                    <span id="cust-report-tamper" style="font-weight:700;color:white;">Verifying...</span>
+                  </div>
+
+                  <div>
+                    <span style="color:hsl(var(--text-dim));display:block;font-size:0.7rem;text-transform:uppercase;">Kitchen Video Reference Match</span>
+                    <span id="cust-report-code" style="font-weight:700;color:white;">Verifying...</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+
+        <!-- 3. SECURITY ADMIN PORTAL VIEW -->
+        <section id="admin-portal" class="portal-view">
+          
+          <!-- ADMIN MFA CREDENTIALS BOX -->
+          <div id="admin-login-wrapper" class="auth-box glass-card" style="text-align:left;">
+            
+            <!-- PWD STEP -->
+            <div id="admin-auth-pwd">
+              <div class="auth-header">
+                <div class="auth-logo-badge red-badge">
+                  <i data-lucide="lock"></i>
+                </div>
+                <h3 data-translate="adminTitle">MFA Security Operations Center</h3>
+                <p style="font-size:0.75rem;margin-top:0.25rem;" data-translate="adminSubtitle">Split-screen video forensics, CLIP inspections & refund dispatch</p>
+              </div>
+
+              <form onsubmit="handleAdminLogin(event)">
+                <div class="form-group">
+                  <label class="form-label">Enter Admin Security Key</label>
+                  <input id="admin-pass-input" type="password" class="form-control" placeholder="••••••••" required />
+                  <p class="form-label" style="font-size:0.6rem;margin-top:0.35rem;text-align:right;">Demo Key: admin123</p>
+                </div>
+                <button type="submit" class="btn btn-red">Verify Password</button>
+              </form>
+            </div>
+
+            <!-- MFA STEP -->
+            <div id="admin-auth-mfa" style="display:none;">
+              <div class="auth-header">
+                <div class="auth-logo-badge red-badge">
+                  <i data-lucide="activity"></i>
+                </div>
+                <h3>2FA Verification Token</h3>
+                <p style="font-size:0.75rem;margin-top:0.25rem;">Enter the security token generated by your authenticator app.</p>
+              </div>
+
+              <form onsubmit="handleAdminMfa(event)">
+                <div class="form-group">
+                  <label class="form-label">Authenticator 6-Digit Token</label>
+                  <input id="admin-mfa-input" type="text" maxlength="6" class="form-control" placeholder="654321" required style="font-family:var(--font-mono);font-size:1.25rem;text-align:center;letter-spacing:0.35em;" />
+                  <p class="form-label" style="font-size:0.6rem;margin-top:0.35rem;text-align:right;">Demo Token: 654321</p>
+                </div>
+                <button type="submit" class="btn btn-red">Verify 2FA Token</button>
+              </form>
+            </div>
+          </div>
+
+          <!-- ADMIN DASHBOARD PANEL -->
+          <div id="admin-dashboard-section" style="display:none;">
+            
+            <!-- Sub tabs navigation -->
+            <div class="portal-nav" style="border-color:hsl(var(--border-color));margin-bottom:1.5rem;">
+              <button class="portal-nav-btn red-accent active" data-tab="disputes" onclick="switchAdminTab('disputes')">
+                Disputes Queue (<span id="admin-stat-pending">0</span>)
+              </button>
+              <button class="portal-nav-btn red-accent" data-tab="analytics" onclick="switchAdminTab('analytics')">
+                Security Logs & Charts
+              </button>
+              <button class="portal-nav-btn red-accent" data-tab="users" onclick="switchAdminTab('users')">
+                Users Registry
+              </button>
+              <button class="portal-nav-btn red-accent" data-tab="settings" onclick="switchAdminTab('settings')">
+                Settings Config
+              </button>
+            </div>
+
+            <!-- TAB 1: DISPUTES QUEUE -->
+            <div id="admin-disputes-view" class="admin-tab-view">
+              
+              <!-- Disputes list panel queue -->
+              <div id="admin-claims-list-panel">
+                <!-- Top stats deck -->
+                <div class="kpi-container">
+                  <div class="kpi-card accent-border-red">
+                    <span class="kpi-title" data-translate="pendingDisputes">Awaiting Review</span>
+                    <div id="admin-stat-pending-val" class="kpi-value">0</div>
+                  </div>
+                  <div class="kpi-card accent-border-red">
+                    <span class="kpi-title" data-translate="approvedRefunds">Total Disbursed</span>
+                    <div id="admin-stat-disbursed" class="kpi-value" style="color:hsl(var(--success-green))">₹0</div>
+                  </div>
+                  <div class="kpi-card accent-border-red">
+                    <span class="kpi-title" data-translate="rejectedClaims">Declined Frauds</span>
+                    <div id="admin-stat-rejected" class="kpi-value" style="color:hsl(var(--text-dim))">0</div>
+                  </div>
+                  <div class="kpi-card accent-border-red">
+                    <span class="kpi-title">AI Suspected Cases</span>
+                    <div id="admin-stat-flags" class="kpi-value" style="color:hsl(var(--alert-red))">0</div>
+                  </div>
+                </div>
+
+                <!-- Filters -->
+                <div class="glass-card" style="padding:1rem;margin-bottom:1.5rem;display:flex;justify-content:between;align-items:center;flex-wrap:wrap;gap:1rem;text-align:left;">
+                  <div style="flex:1;min-width:240px;position:relative;">
+                    <input id="admin-claims-search" type="text" class="form-control" placeholder="Search Claim ID, Order, Customer..." oninput="renderAdminClaimsTable()" style="height:2.25rem;" />
+                  </div>
+                  <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+                    <select id="admin-claims-status-filter" class="dropdown-select" onchange="renderAdminClaimsTable()">
+                      <option value="all">All Statuses</option>
+                      <option value="submitted">Submitted</option>
+                      <option value="analyzing">Analyzing</option>
+                      <option value="review">Review Needed</option>
+                      <option value="approved">Approved</option>
+                      <option value="rejected">Rejected</option>
+                    </select>
+                    <select id="admin-claims-risk-filter" class="dropdown-select" onchange="renderAdminClaimsTable()">
+                      <option value="all">All AI Risks</option>
+                      <option value="high">High Risk (>60%)</option>
+                      <option value="medium">Medium Risk (30-60%)</option>
+                      <option value="low">Low Risk (<30%)</option>
+                    </select>
+                  </div>
+                </div>
+
+                <!-- Table disputes -->
+                <div class="table-wrapper">
+                  <table class="table-core">
+                    <thead>
+                      <tr>
+                        <th>Dispute ID</th>
+                        <th>Customer</th>
+                        <th>Order info</th>
+                        <th>Category</th>
+                        <th>AI Risk</th>
+                        <th>Status</th>
+                        <th style="text-align:right;">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody id="admin-claims-tbody">
+                      <!-- dynamically populated rows -->
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <!-- Dispute Audits Detail split screen panel -->
+              <div id="admin-claim-details-panel" style="display:none;text-align:left;">
+                
+                <!-- Detail Header -->
+                <div class="glass-card" style="padding:1rem 1.5rem;margin-bottom:1.5rem;display:flex;justify-content:between;align-items:center;flex-wrap:wrap;gap:1rem;">
+                  <div style="display:flex;align-items:center;gap:0.75rem;">
+                    <button class="btn-mini btn-secondary" onclick="selectedDisputeId = null; renderAdminClaimsTable();">✕ Exit Case</button>
+                    <h4 id="admin-detail-title" style="color:white;margin:0;">Reviewing Dispute</h4>
+                  </div>
+                  <span id="admin-detail-fraud-score" class="badge">AI Fraud Score: 78%</span>
+                </div>
+
+                <!-- Comparative Split view + resolution panel -->
+                <div style="display:grid;grid-template-columns:1fr;gap:1.5rem;align-items:start;" id="admin-main-split-container">
+                  
+                  <div class="grid-2">
+                    <!-- Left: Kitchen video logs -->
+                    <div id="admin-col-video" class="glass-card">
+                      <!-- dynamic content video playback details -->
+                    </div>
+
+                    <!-- Right: Photo evidence uploader carousel with filters -->
+                    <div id="admin-col-evidence" class="glass-card">
+                      <!-- dynamic photo details carousel -->
+                    </div>
+                  </div>
+
+                  <!-- Resolution Form details -->
+                  <div class="glass-card">
+                    <h4 style="color:white;margin-bottom:1.25rem;display:flex;align-items:center;gap:0.5rem;">
+                      <i data-lucide="mail" style="color:hsl(var(--accent-purple))"></i>
+                      <span>Auditor Resolution Panel</span>
+                    </h4>
+
+                    <!-- Template email quick responders -->
+                    <div class="form-group">
+                      <label class="form-label">Preset notice template</label>
+                      <select id="admin-template-select" class="select-control" onchange="loadAdminTemplate(this.value)">
+                        <option value="approve_particle">Approve: Foreign Particle Found</option>
+                        <option value="approve_leak">Approve: Leakage/Spilling</option>
+                        <option value="reject_ai">Reject: Synthetic/AI Photo Flagged</option>
+                        <option value="reject_mismatch">Reject: Video Audit Mismatch</option>
+                      </select>
+                    </div>
+
+                    <div class="form-group">
+                      <label class="form-label">Notice Email body (Editable)</label>
+                      <textarea id="admin-email-text" class="form-control" rows="5"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                      <label class="form-label">Internal Security Reviewer Notes</label>
+                      <textarea id="admin-notes-input" class="form-control" rows="2" placeholder="Record reason details for transaction audit logging..."></textarea>
+                    </div>
+
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-top:1.5rem;">
+                      <button class="btn btn-green" onclick="adminResolveClaim('approved')">
+                        <i data-lucide="check"></i>
+                        <span>Approve Refund</span>
+                      </button>
+                      <button class="btn btn-red" onclick="adminResolveClaim('rejected')">
+                        <span>Reject Dispute</span>
+                      </button>
+                    </div>
+                  </div>
+
+                </div>
+
+              </div>
+
+            </div>
+
+            <!-- TAB 2: ANALYTICS -->
+            <div id="admin-analytics-view" class="admin-tab-view" style="display:none;text-align:left;">
+              <h3 style="color:white;margin-bottom:1.25rem;" data-translate="analyticsOverview">Metrics & Logs</h3>
+              
+              <div class="grid-2">
+                <!-- SVG Plot -->
+                <div class="glass-card">
+                  <h4 style="color:white;margin-bottom:1rem;">Daily Disputes Volume & Fraud Flags</h4>
+                  
+                  <div style="aspect-ratio:1.6;width:100%;">
+                    <svg viewBox="0 0 400 200" class="svg-chart">
+                      <!-- Gridlines -->
+                      <line x1="40" y1="20" x2="380" y2="20" class="chart-grid-line" />
+                      <line x1="40" y1="60" x2="380" y2="60" class="chart-grid-line" />
+                      <line x1="40" y1="100" x2="380" y2="100" class="chart-grid-line" />
+                      <line x1="40" y1="140" x2="380" y2="140" class="chart-grid-line" />
+                      <line x1="40" y1="180" x2="380" y2="180" class="chart-axis-line" />
+                      <line x1="40" y1="20" x2="40" y2="180" class="chart-axis-line" />
+
+                      <!-- X Labels -->
+                      <text x="70" y="195" fill="hsl(var(--text-dim))" font-size="9" text-anchor="middle">05/15</text>
+                      <text x="130" y="195" fill="hsl(var(--text-dim))" font-size="9" text-anchor="middle">05/16</text>
+                      <text x="190" y="195" fill="hsl(var(--text-dim))" font-size="9" text-anchor="middle">05/17</text>
+                      <text x="250" y="195" fill="hsl(var(--text-dim))" font-size="9" text-anchor="middle">05/18</text>
+                      <text x="310" y="195" fill="hsl(var(--text-dim))" font-size="9" text-anchor="middle">05/19</text>
+                      <text x="360" y="195" fill="hsl(var(--text-dim))" font-size="9" text-anchor="middle">05/20</text>
+
+                      <!-- Bar plots simulated -->
+                      <!-- Claims Bars (Blue) -->
+                      <rect x="58" y="138" width="12" height="42" fill="hsl(var(--accent-blue))" rx="2" />
+                      <rect x="118" y="126" width="12" height="54" fill="hsl(var(--accent-blue))" rx="2" />
+                      <rect x="178" y="114" width="12" height="66" fill="hsl(var(--accent-blue))" rx="2" />
+                      <rect x="238" y="144" width="12" height="36" fill="hsl(var(--accent-blue))" rx="2" />
+                      <rect x="298" y="96" width="12" height="84" fill="hsl(var(--accent-blue))" rx="2" />
+                      <rect id="svg-claim-bar-6" x="348" y="130" width="12" height="50" fill="hsl(var(--accent-blue))" rx="2" />
+
+                      <!-- Fraud Bars (Red) -->
+                      <rect x="72" y="174" width="12" height="6" fill="hsl(var(--alert-red))" rx="2" />
+                      <rect x="132" y="177" width="12" height="3" fill="hsl(var(--alert-red))" rx="2" />
+                      <rect x="192" y="168" width="12" height="12" fill="hsl(var(--alert-red))" rx="2" />
+                      <rect x="252" y="180" width="12" height="0" fill="hsl(var(--alert-red))" rx="2" />
+                      <rect x="312" y="156" width="12" height="24" fill="hsl(var(--alert-red))" rx="2" />
+                      <rect id="svg-fraud-bar-6" x="362" y="164" width="12" height="16" fill="hsl(var(--alert-red))" rx="2" />
+                    </svg>
+                  </div>
+                  
+                  <div style="display:flex;gap:1.5rem;justify-content:center;font-size:0.75rem;margin-top:0.5rem;">
+                    <span style="display:flex;align-items:center;gap:0.35rem;">
+                      <span style="display:inline-block;width:12px;height:12px;background:hsl(var(--accent-blue));border-radius:2px;"></span>
+                      Total Disputes Filed
+                    </span>
+                    <span style="display:flex;align-items:center;gap:0.35rem;">
+                      <span style="display:inline-block;width:12px;height:12px;background:hsl(var(--alert-red));border-radius:2px;"></span>
+                      AI Fraud Detections
+                    </span>
+                  </div>
+                </div>
+
+                <!-- Log trail list -->
+                <div class="glass-card" style="display:flex;flex-direction:column;">
+                  <h4 style="color:white;margin-bottom:1rem;">Real-Time Platform Security Audits</h4>
+                  <div id="admin-audit-logs" class="logs-list" style="flex:1;height:auto;max-height:240px;">
+                    <!-- logs list dynamic -->
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- TAB 3: USERS REGISTRY -->
+            <div id="admin-users-view" class="admin-tab-view" style="display:none;text-align:left;">
+              <h3 style="color:white;margin-bottom:1.25rem;">Demo Customer Registry</h3>
+              <div id="admin-users-box">
+                <!-- dynamic user details profile -->
+              </div>
+            </div>
+
+            <!-- TAB 4: SYSTEM SETTINGS -->
+            <div id="admin-settings-view" class="admin-tab-view" style="display:none;text-align:left;">
+              <h3 style="color:white;margin-bottom:1.25rem;" data-translate="systemSettings">System Configurations</h3>
+              
+              <div class="glass-card" style="max-width:600px;">
+                <form onsubmit="adminSaveSettings(event)">
+                  
+                  <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+                    <div class="form-group">
+                      <label class="form-label" data-translate="autoApprovalThreshold">Auto-Approve Threshold (Fraud %)</label>
+                      <input id="admin-set-approval" type="number" class="form-control" value="15" min="0" max="100" required />
+                    </div>
+                    <div class="form-group">
+                      <label class="form-label" data-translate="autoRejectionThreshold">Auto-Reject Threshold (Fraud %)</label>
+                      <input id="admin-set-rejection" type="number" class="form-control" value="75" min="0" max="100" required />
+                    </div>
+                  </div>
+
+                  <div class="form-group" style="flex-direction:row;align-items:center;gap:0.75rem;margin-top:0.5rem;">
+                    <input id="admin-set-vidrequired" type="checkbox" style="width:1.2rem;height:1.2rem;cursor:pointer;" />
+                    <label class="form-label" style="cursor:pointer;margin-bottom:0;" data-translate="videoRequired">Require Packaging Video</label>
+                  </div>
+
+                  <div class="form-group" style="flex-direction:row;align-items:center;gap:0.75rem;margin-top:0.5rem;margin-bottom:1.5rem;">
+                    <input id="admin-set-blockchain" type="checkbox" style="width:1.2rem;height:1.2rem;cursor:pointer;" />
+                    <label class="form-label" style="cursor:pointer;margin-bottom:0;" data-translate="blockchainEnabled">Log Hashes to Blockchain Ledger</label>
+                  </div>
+
+                  <div style="display:flex;gap:1rem;flex-wrap:wrap;">
+                    <button type="submit" class="btn btn-red" style="width:auto;" data-translate="submitSettings">Commit Configurations</button>
+                    <button type="button" class="btn btn-secondary" style="width:auto;" onclick="db.reset()" data-translate="resetDatabase">Reset Database State</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+
+          </div>
+
+        </section>
+
+      </main>
+
+      <!-- Global Footer -->
+      <footer style="margin-top:auto;border-top:1px solid hsl(var(--border-color));padding:1.5rem 0;text-align:center;font-size:0.75rem;color:hsl(var(--text-dim));">
+        <div>&copy; 2026 FoodShield Security. All rights reserved.</div>
+      </footer>
+
+    </div>
+
+    <!-- 4. VIEW LOG VIDEO OVERLAY PLAYBACK MODAL -->
+    <div id="video-playback-modal" class="modal-overlay" onclick="closeVideoModal()">
+      <div class="modal-content glass-card" onclick="event.stopPropagation()" style="text-align:left;">
+        <div style="display:flex;justify-content:between;align-items:center;border-bottom:1px solid hsl(var(--border-color));padding-bottom:0.5rem;margin-bottom:1rem;">
+          <h4 id="modal-title-header" style="color:white;margin:0;font-size:0.9rem;">Video Details</h4>
+          <button style="background:transparent;border:none;color:hsl(var(--text-muted));cursor:pointer;font-weight:700;" onclick="closeVideoModal()">✕</button>
+        </div>
+
+        <div class="evidence-carousel-wrapper" style="display:flex;align-items:center;justify-content:center;font-size:3rem;background-color:black;color:white;margin-bottom:1rem;">
+          🎥
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;font-size:0.8rem;color:hsl(var(--text-muted));">
+          <div>Length: <strong id="modal-duration" style="color:white;">s</strong></div>
+          <div>Chef: <strong id="modal-operator" style="color:white;">Chef</strong></div>
+          <div>Freshness Score: <strong id="modal-freshness" style="color:hsl(var(--success-green));">95%</strong></div>
+          <div>Seal Tape: <strong id="modal-seal-integrity" style="color:white;">Perfect</strong></div>
+          <div>Foreign Particles: <strong id="modal-particles" style="color:white;">None</strong></div>
+        </div>
+
+        <div style="margin-top:1.5rem;display:flex;justify-content:end;">
+          <button class="btn btn-secondary" style="width:auto;height:2.25rem;font-size:0.8rem;" onclick="closeVideoModal()">Close View</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lucide Icons Library & Custom Application Script -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
